@@ -16,7 +16,7 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const CPU_MAX = 41134;
-const GPU_MAX = 26768;
+const GPU_MAX = 38958;
 
 function norm(score, max) { return Math.round(score / max * 100); }
 
@@ -35,32 +35,58 @@ const cpus = [
   {name:'Ryzen 5 5600',    score:norm(21524, CPU_MAX),  brand:'amd',    _raw:21524},
   {name:'Ryzen 5 5600X',   score:norm(21841, CPU_MAX),  brand:'amd',    _raw:21841},
   {name:'Ryzen 7 5700X',   score:norm(26587, CPU_MAX),  brand:'amd',    _raw:26587},
+  {name:'Ryzen 5 7600',    score:norm(26980, CPU_MAX),  brand:'amd',    _raw:26980},
   {name:'i5-12600K',        score:norm(27538, CPU_MAX),  brand:'intel',  _raw:27538},
+  {name:'Ryzen 5 7600X',   score:norm(28304, CPU_MAX),  brand:'amd',    _raw:28304},
   {name:'i7-12700K',        score:norm(34293, CPU_MAX),  brand:'intel',  _raw:34293},
+  {name:'Ryzen 7 7800X3D', score:norm(34283, CPU_MAX),  brand:'amd',    _raw:34283},
+  {name:'i5-13400F',        score:norm(24971, CPU_MAX),  brand:'intel',  _raw:24971},
   {name:'Ryzen 9 5900X',   score:norm(38926, CPU_MAX),  brand:'amd',    _raw:38926},
   {name:'i9-12900K',        score:norm(41134, CPU_MAX),  brand:'intel',  _raw:41134},
 ];
 
 const gpus = [
   {name:'GTX 1050 Ti',      score:norm(6362,  GPU_MAX),  brand:'nvidia', _raw:6362},
-  {name:'GTX 1060 6GB',    score:norm(10045, GPU_MAX),  brand:'nvidia', _raw:10045},
   {name:'RX 580 8GB',      score:norm(8790,  GPU_MAX),  brand:'amd',    _raw:8790},
+  {name:'GTX 1060 6GB',    score:norm(10045, GPU_MAX),  brand:'nvidia', _raw:10045},
   {name:'GTX 1660 Super',   score:norm(12683, GPU_MAX),  brand:'nvidia', _raw:12683},
   {name:'RTX 2060',         score:norm(14094, GPU_MAX),  brand:'nvidia', _raw:14094},
   {name:'RX 6600',          score:norm(15059, GPU_MAX),  brand:'amd',    _raw:15059},
-  {name:'RTX 2070 Super',   score:norm(18136, GPU_MAX),  brand:'nvidia', _raw:18136},
-  {name:'RTX 3060 12GB',    score:norm(16737, GPU_MAX),  brand:'nvidia', _raw:16737},
   {name:'RX 5700 XT',       score:norm(16079, GPU_MAX),  brand:'amd',    _raw:16079},
+  {name:'RX 7600',          score:norm(16511, GPU_MAX),  brand:'amd',    _raw:16511},
+  {name:'RTX 3060 12GB',    score:norm(16737, GPU_MAX),  brand:'nvidia', _raw:16737},
   {name:'RX 6650 XT',       score:norm(17123, GPU_MAX),  brand:'amd',    _raw:17123},
-  {name:'RTX 3060 Ti',      score:norm(20263, GPU_MAX),  brand:'nvidia', _raw:20263},
+  {name:'RTX 2070 Super',   score:norm(18136, GPU_MAX),  brand:'nvidia', _raw:18136},
+  {name:'RTX 4060',         score:norm(19512, GPU_MAX),  brand:'nvidia', _raw:19512},
   {name:'RX 6700 XT',       score:norm(19731, GPU_MAX),  brand:'amd',    _raw:19731},
+  {name:'RTX 3060 Ti',      score:norm(20263, GPU_MAX),  brand:'nvidia', _raw:20263},
+  {name:'RX 9060 XT 16GB',  score:norm(20121, GPU_MAX),  brand:'amd',    _raw:20121},
+  {name:'RTX 5060',         score:norm(20794, GPU_MAX),  brand:'nvidia', _raw:20794},
   {name:'RTX 3070',         score:norm(22118, GPU_MAX),  brand:'nvidia', _raw:22118},
   {name:'RX 6800',          score:norm(22026, GPU_MAX),  brand:'amd',    _raw:22026},
+  {name:'RTX 4060 Ti',      score:norm(22625, GPU_MAX),  brand:'nvidia', _raw:22625},
+  {name:'RTX 5060 Ti',      score:norm(22644, GPU_MAX),  brand:'nvidia', _raw:22644},
+  {name:'RX 7700 XT',       score:norm(22658, GPU_MAX),  brand:'amd',    _raw:22658},
   {name:'RTX 3070 Ti',      score:norm(23243, GPU_MAX),  brand:'nvidia', _raw:23243},
+  {name:'RX 7800 XT',       score:norm(24346, GPU_MAX),  brand:'amd',    _raw:24346},
   {name:'RTX 3080',         score:norm(25019, GPU_MAX),  brand:'nvidia', _raw:25019},
   {name:'RX 6800 XT',       score:norm(25053, GPU_MAX),  brand:'amd',    _raw:25053},
+  {name:'RX 9070',          score:norm(25387, GPU_MAX),  brand:'amd',    _raw:25387},
   {name:'RTX 3080 Ti',      score:norm(26768, GPU_MAX),  brand:'nvidia', _raw:26768},
   {name:'RTX 3090',         score:norm(26546, GPU_MAX),  brand:'nvidia', _raw:26546},
+  {name:'RX 9070 XT',       score:norm(26900, GPU_MAX),  brand:'amd',    _raw:26900},
+  {name:'RTX 4070',         score:norm(26905, GPU_MAX),  brand:'nvidia', _raw:26905},
+  {name:'RTX 5070',         score:norm(28758, GPU_MAX),  brand:'nvidia', _raw:28758},
+  {name:'RX 7900 GRE',      score:norm(27395, GPU_MAX),  brand:'amd',    _raw:27395},
+  {name:'RX 7900 XT',       score:norm(29037, GPU_MAX),  brand:'amd',    _raw:29037},
+  {name:'RTX 4070 Super',   score:norm(29955, GPU_MAX),  brand:'nvidia', _raw:29955},
+  {name:'RTX 4070 Ti Super',score:norm(31809, GPU_MAX),  brand:'nvidia', _raw:31809},
+  {name:'RX 7900 XTX',      score:norm(31412, GPU_MAX),  brand:'amd',    _raw:31412},
+  {name:'RTX 5070 Ti',      score:norm(32432, GPU_MAX),  brand:'nvidia', _raw:32432},
+  {name:'RTX 4080 Super',   score:norm(34271, GPU_MAX),  brand:'nvidia', _raw:34271},
+  {name:'RTX 5080',         score:norm(35677, GPU_MAX),  brand:'nvidia', _raw:35677},
+  {name:'RTX 4090',         score:norm(38067, GPU_MAX),  brand:'nvidia', _raw:38067},
+  {name:'RTX 5090',         score:norm(38958, GPU_MAX),  brand:'nvidia', _raw:38958},
 ];
 
 function clusterByScore(processors, tolerance) {
