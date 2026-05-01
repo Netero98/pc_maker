@@ -302,13 +302,13 @@ const chart = new Chart(document.getElementById('compatChart'), {
           ? (pt.brand === 'intel' ? [61,142,232] : [232,92,48])
           : (pt.brand === 'nvidia' ? [32,160,96] : [204,34,68]);
 
-        const lineY = pt.type === 'cpu' ? cpuYpx : gpuYpx;
-        const extendTo = pt.type === 'cpu' ? gpuYpx : cpuYpx;
+        const topY = y.getPixelForValue(0);
+        const botY = y.getPixelForValue(100);
 
         ctx.save();
         ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.12)`;
         ctx.beginPath();
-        ctx.roundRect(x1, Math.min(lineY, extendTo) - 5, x2-x1, Math.abs(extendTo-lineY)+10, 4);
+        ctx.roundRect(x1, topY, x2-x1, botY-topY, 4);
         ctx.fill();
         ctx.restore();
       });
