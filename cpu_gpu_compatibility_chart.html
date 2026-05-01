@@ -181,6 +181,26 @@ const chart = new Chart(document.getElementById('compatChart'), {
     id: 'compatBands',
     beforeDatasetsDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
+
+      let minGap = Infinity;
+      for (let i = 1; i < cpuPoints.length; i++) {
+        const gap = x.getPixelForValue(cpuPoints[i].score) - x.getPixelForValue(cpuPoints[i-1].score);
+        if (gap < minGap) minGap = gap;
+      }
+      for (let i = 1; i < gpuPoints.length; i++) {
+        const gap = x.getPixelForValue(gpuPoints[i].score) - x.getPixelForValue(gpuPoints[i-1].score);
+        if (gap < minGap) minGap = gap;
+      }
+      const compact = minGap < 55;
+      chart._compact = compact;
+      chart.data.datasets.forEach((ds, dsIdx) => {
+        const meta = chart.getDatasetMeta(dsIdx);
+        meta.data.forEach(el => {
+          el.options.radius = compact ? 5 : 10;
+          el.options.hoverRadius = compact ? 7 : 12;
+        });
+      });
+
       const yTop = y.getPixelForValue(100);
       const yBottom = y.getPixelForValue(0);
       const cpuY = y.getPixelForValue(CPU_Y);
@@ -252,20 +272,47 @@ const chart = new Chart(document.getElementById('compatChart'), {
       const cpuY = y.getPixelForValue(CPU_Y);
       const gpuY = y.getPixelForValue(GPU_Y);
       const font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+      const pad = 3;
 
       ctx.save();
       ctx.font = font;
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      cpuPoints.forEach(pt => {
+      let toggle = false;
+      cpuPoints.forEach((pt, i) => {
+        const ptX = x.getPixelForValue(pt.score);
+        const w = ctx.measureText(pt.name).width;
+        if (i > 0) {
+          const prev = cpuPoints[i-1];
+          const prevX = x.getPixelForValue(prev.score);
+          const prevW = ctx.measureText(prev.name).width;
+          if (ptX - prevX < (w + prevW) / 2 + pad) {
+            toggle = !toggle;
+          } else {
+            toggle = false;
+          }
+        }
         ctx.fillStyle = pt.brand === 'intel' ? intelDot : amdCpuDot;
-        ctx.fillText(pt.name, x.getPixelForValue(pt.score), cpuY + 13);
+        ctx.fillText(pt.name, ptX, cpuY + (toggle && chart._compact ? 28 : 13));
       });
 
-      gpuPoints.forEach(pt => {
+      toggle = false;
+      gpuPoints.forEach((pt, i) => {
+        const ptX = x.getPixelForValue(pt.score);
+        const w = ctx.measureText(pt.name).width;
+        if (i > 0) {
+          const prev = gpuPoints[i-1];
+          const prevX = x.getPixelForValue(prev.score);
+          const prevW = ctx.measureText(prev.name).width;
+          if (ptX - prevX < (w + prevW) / 2 + pad) {
+            toggle = !toggle;
+          } else {
+            toggle = false;
+          }
+        }
         ctx.fillStyle = pt.brand === 'nvidia' ? nvidiaDot : amdGpuDot;
-        ctx.fillText(pt.name, x.getPixelForValue(pt.score), gpuY + 13);
+        ctx.fillText(pt.name, ptX, gpuY + (toggle && chart._compact ? 28 : 13));
       });
 
       ctx.restore();
