@@ -7,7 +7,7 @@
     <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#CC2244;opacity:0.9;"></span>GPU AMD</span>
     <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:3px;background:#888;opacity:0.3;margin-bottom:1px;"></span>зона совместимости</span>
   </div>
-  <div style="position:relative; width:100%; height:580px;">
+  <div style="position:relative; width:100%; height:480px;">
     <canvas id="compatChart" role="img" aria-label="График совместимости процессоров и видеокарт по уровню производительности"></canvas>
   </div>
   <div id="tooltip" style="display:none;position:fixed;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--color-text-primary);pointer-events:none;z-index:9999;max-width:220px;"></div>
@@ -94,7 +94,7 @@ function clusterByScore(processors, tolerance) {
   const clusters = [];
   let current = [sorted[0]];
   for (let i = 1; i < sorted.length; i++) {
-    if (sorted[i].score - current[current.length-1].score <= tolerance) {
+    if (sorted[i].score - current[0].score <= tolerance) {
       current.push(sorted[i]);
     } else {
       clusters.push(current);
@@ -105,7 +105,7 @@ function clusterByScore(processors, tolerance) {
   return clusters;
 }
 
-const CTOL = 2;
+const CTOL = 3;
 const GTOL = 3;
 const cpuClusters = clusterByScore(cpus, CTOL);
 const gpuClusters = clusterByScore(gpus, GTOL);
@@ -167,11 +167,11 @@ const nvidiaDot = '#20A060';
 const amdGpuDot = '#CC2244';
 
 const cpuColors = cpuPoints.map(c => c.brand === 'intel' ? intelDot : amdCpuDot);
-const cpuRadius = cpuPoints.map(p => p._clusterSize > 8 ? 3 : (p._clusterSize > 4 ? 4 : 5));
-const cpuHoverR = cpuPoints.map(p => p._clusterSize > 8 ? 5 : (p._clusterSize > 4 ? 6 : 7));
+const cpuRadius = cpuPoints.map(p => p._clusterSize > 4 ? 6 : (p._clusterSize > 2 ? 7 : 8));
+const cpuHoverR = cpuPoints.map(p => p._clusterSize > 4 ? 8 : (p._clusterSize > 2 ? 9 : 10));
 const gpuColors = gpuPoints.map(g => g.brand === 'nvidia' ? nvidiaDot : amdGpuDot);
-const gpuRadius = gpuPoints.map(p => p._clusterSize > 8 ? 3 : (p._clusterSize > 4 ? 4 : 5));
-const gpuHoverR = gpuPoints.map(p => p._clusterSize > 8 ? 5 : (p._clusterSize > 4 ? 6 : 7));
+const gpuRadius = gpuPoints.map(p => p._clusterSize > 4 ? 6 : (p._clusterSize > 2 ? 7 : 8));
+const gpuHoverR = gpuPoints.map(p => p._clusterSize > 4 ? 8 : (p._clusterSize > 2 ? 9 : 10));
 
 const tooltip = document.getElementById('tooltip');
 let activeItem = null;
@@ -335,8 +335,7 @@ const chart = new Chart(document.getElementById('compatChart'), {
     },
     afterDatasetsDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
-      const fontSize = CLUSTER_Y_SPACING < 5 ? 8 : 9;
-      const font = fontSize + 'px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+      const font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
 
       ctx.save();
       ctx.font = font;
