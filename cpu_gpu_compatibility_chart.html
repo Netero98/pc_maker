@@ -1,0 +1,249 @@
+
+<div style="padding: 1rem 0; font-family: var(--font-sans);">
+  <div style="display:flex; gap:12px; flex-wrap:wrap; margin-bottom:1rem; font-size:12px; color:var(--color-text-secondary);">
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#3D8EE8;opacity:0.9;"></span>CPU Intel</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#E85C30;opacity:0.9;"></span>CPU AMD</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#20A060;opacity:0.9;"></span>GPU NVIDIA</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#CC2244;opacity:0.9;"></span>GPU AMD</span>
+    <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:3px;background:#888;opacity:0.3;margin-bottom:1px;"></span>зона совместимости</span>
+  </div>
+  <div style="position:relative; width:100%; height:420px;">
+    <canvas id="compatChart" role="img" aria-label="График совместимости процессоров и видеокарт по уровню производительности"></canvas>
+  </div>
+  <div id="tooltip" style="display:none;position:fixed;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--color-text-primary);pointer-events:none;z-index:9999;max-width:220px;"></div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+const cpus = [
+  {name:'Pentium G7400', score:28, brand:'intel'},
+  {name:'i3-12100F', score:42, brand:'intel'},
+  {name:'Ryzen 5 5500', score:48, brand:'amd'},
+  {name:'i5-12400F', score:58, brand:'intel'},
+  {name:'Ryzen 5 5600', score:63, brand:'amd'},
+  {name:'Ryzen 5 5600X', score:67, brand:'amd'},
+  {name:'i5-12600K', score:74, brand:'intel'},
+  {name:'Ryzen 7 5700X', score:79, brand:'amd'},
+  {name:'i7-12700K', score:88, brand:'intel'},
+  {name:'Ryzen 9 5900X', score:95, brand:'amd'},
+  {name:'i9-12900K', score:100, brand:'intel'},
+];
+
+const gpus = [
+  {name:'RX 6600', score:30, brand:'amd'},
+  {name:'RTX 3060', score:38, brand:'nvidia'},
+  {name:'RX 6650 XT', score:44, brand:'amd'},
+  {name:'RTX 3060 Ti', score:52, brand:'nvidia'},
+  {name:'RX 6700 XT', score:59, brand:'amd'},
+  {name:'RTX 3070', score:65, brand:'nvidia'},
+  {name:'RX 6800', score:71, brand:'amd'},
+  {name:'RTX 3070 Ti', score:76, brand:'nvidia'},
+  {name:'RTX 3080', score:84, brand:'amd'},
+  {name:'RX 6800 XT', score:88, brand:'amd'},
+  {name:'RTX 3080 Ti', score:95, brand:'nvidia'},
+  {name:'RTX 3090', score:100, brand:'nvidia'},
+];
+
+function compatRange(score) {
+  const margin = 22;
+  return [Math.max(0, score - margin), Math.min(105, score + margin)];
+}
+
+const CPU_Y = 75;
+const GPU_Y = 25;
+
+const cpuPoints = cpus.map(c => ({x: c.score, y: CPU_Y, name: c.name, brand: c.brand, score: c.score, type:'cpu'}));
+const gpuPoints = gpus.map(g => ({x: g.score, y: GPU_Y, name: g.name, brand: g.brand, score: g.score, type:'gpu'}));
+
+const cpuBands = cpus.map(c => {
+  const [lo, hi] = compatRange(c.score);
+  return {
+    type:'bar', label:'_cpu_band_'+c.name, data:[],
+    annotations: true, _lo: lo, _hi: hi, _name: c.name, _brand: c.brand
+  };
+});
+
+const intelColor = 'rgba(61,142,232,0.13)';
+const amdCpuColor = 'rgba(232,92,48,0.13)';
+const nvidiaColor = 'rgba(32,160,96,0.13)';
+const amdGpuColor = 'rgba(204,34,68,0.13)';
+
+const intelBorder = 'rgba(61,142,232,0.5)';
+const amdCpuBorder = 'rgba(232,92,48,0.5)';
+const nvidiaBorder = 'rgba(32,160,96,0.5)';
+const amdGpuBorder = 'rgba(204,34,68,0.5)';
+
+const intelDot = '#3D8EE8';
+const amdCpuDot = '#E85C30';
+const nvidiaDot = '#20A060';
+const amdGpuDot = '#CC2244';
+
+const cpuColors = cpus.map(c => c.brand === 'intel' ? intelDot : amdCpuDot);
+const gpuColors = gpus.map(g => g.brand === 'nvidia' ? nvidiaDot : amdGpuDot);
+
+const tooltip = document.getElementById('tooltip');
+let activeItem = null;
+
+const chart = new Chart(document.getElementById('compatChart'), {
+  type: 'scatter',
+  data: {
+    datasets: [
+      {
+        label: 'CPU',
+        data: cpuPoints,
+        pointBackgroundColor: cpuColors,
+        pointBorderColor: cpuColors,
+        pointRadius: 10,
+        pointHoverRadius: 12,
+        showLine: true,
+        borderColor: 'rgba(120,120,120,0.3)',
+        borderWidth: 1.5,
+        borderDash: [4,3],
+        tension: 0,
+        order: 2,
+      },
+      {
+        label: 'GPU',
+        data: gpuPoints,
+        pointBackgroundColor: gpuColors,
+        pointBorderColor: gpuColors,
+        pointRadius: 10,
+        pointHoverRadius: 12,
+        showLine: true,
+        borderColor: 'rgba(120,120,120,0.3)',
+        borderWidth: 1.5,
+        borderDash: [4,3],
+        tension: 0,
+        order: 2,
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    animation: { duration: 400 },
+    scales: {
+      x: {
+        min: 0,
+        max: 108,
+        title: { display: true, text: 'Относительная производительность', color: 'rgba(128,128,128,0.8)', font: { size: 12 } },
+        grid: { color: 'rgba(128,128,128,0.1)' },
+        ticks: { color: 'rgba(128,128,128,0.7)', font: { size: 11 } }
+      },
+      y: {
+        min: 0,
+        max: 100,
+        display: false,
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { enabled: false },
+    },
+    onHover(event, elements) {
+      if (elements.length > 0) {
+        const el = elements[0];
+        const ds = chart.data.datasets[el.datasetIndex];
+        const pt = ds.data[el.index];
+        activeItem = pt;
+        const [lo, hi] = compatRange(pt.score);
+        const other = pt.type === 'cpu' ? gpuPoints : cpuPoints;
+        const matches = other.filter(o => o.score >= lo && o.score <= hi);
+        const matchNames = matches.map(m => m.name).join(', ') || 'нет';
+        const typeLabel = pt.type === 'cpu' ? 'Процессор' : 'Видеокарта';
+        const otherLabel = pt.type === 'cpu' ? 'GPU' : 'CPU';
+        tooltip.innerHTML = `<strong>${pt.name}</strong><br><span style="color:rgba(128,128,128,0.8);font-size:11px;">${typeLabel} · рейтинг ${pt.score}</span><br><hr style="border:none;border-top:0.5px solid rgba(128,128,128,0.2);margin:6px 0;"><span style="font-size:11px;color:rgba(128,128,128,0.9);">Совместимые ${otherLabel}:</span><br><span style="font-size:11px;">${matchNames}</span>`;
+        tooltip.style.display = 'block';
+        chart.canvas.style.cursor = 'pointer';
+      } else {
+        activeItem = null;
+        tooltip.style.display = 'none';
+        chart.canvas.style.cursor = 'default';
+      }
+      chart.draw();
+    },
+  },
+  plugins: [{
+    id: 'compatBands',
+    beforeDatasetsDraw(chart) {
+      const {ctx, scales: {x, y}} = chart;
+      const yTop = y.getPixelForValue(100);
+      const yBottom = y.getPixelForValue(0);
+      const cpuY = y.getPixelForValue(CPU_Y);
+      const gpuY = y.getPixelForValue(GPU_Y);
+      const midY = (cpuY + gpuY) / 2;
+
+      const allItems = [...cpuPoints, ...gpuPoints];
+      allItems.forEach(pt => {
+        const isActive = activeItem && activeItem.name === pt.name;
+        const [lo, hi] = compatRange(pt.score);
+        const x1 = x.getPixelForValue(lo);
+        const x2 = x.getPixelForValue(hi);
+
+        let fillColor, borderColor;
+        if (pt.type === 'cpu') {
+          fillColor = pt.brand === 'intel' ? intelColor : amdCpuColor;
+          borderColor = pt.brand === 'intel' ? intelBorder : amdCpuBorder;
+        } else {
+          fillColor = pt.brand === 'nvidia' ? nvidiaColor : amdGpuColor;
+          borderColor = pt.brand === 'nvidia' ? nvidiaBorder : amdGpuBorder;
+        }
+
+        const alpha = isActive ? 3.5 : 1;
+
+        ctx.save();
+        ctx.globalAlpha = alpha * (isActive ? 0.35 : 0.18);
+        ctx.fillStyle = fillColor.replace('0.13','1').replace('rgba','rgba');
+        
+        const rawFill = pt.type === 'cpu' 
+          ? (pt.brand === 'intel' ? [61,142,232] : [232,92,48])
+          : (pt.brand === 'nvidia' ? [32,160,96] : [204,34,68]);
+        
+        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.22 : 0.09})`;
+        
+        const lineY = pt.type === 'cpu' ? cpuY : gpuY;
+        const extendTo = pt.type === 'cpu' ? gpuY : cpuY;
+        const h = 30;
+
+        ctx.beginPath();
+        ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
+        ctx.fill();
+
+        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.12 : 0.05})`;
+        ctx.beginPath();
+        ctx.roundRect(x1, Math.min(lineY, extendTo) - 5, x2-x1, Math.abs(extendTo-lineY)+10, 4);
+        ctx.fill();
+
+        ctx.strokeStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.6 : 0.25})`;
+        ctx.lineWidth = isActive ? 1.5 : 0.8;
+        ctx.setLineDash(isActive ? [] : [3,3]);
+        ctx.beginPath();
+        ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
+        ctx.stroke();
+        ctx.setLineDash([]);
+        ctx.restore();
+      });
+
+      ctx.save();
+      ctx.fillStyle = 'rgba(128,128,128,0.55)';
+      ctx.font = '500 11px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+      ctx.textAlign = 'left';
+      ctx.fillText('▶ CPU', x.getPixelForValue(1), cpuY + 4);
+      ctx.fillText('▶ GPU', x.getPixelForValue(1), gpuY + 4);
+      ctx.restore();
+    }
+  }]
+});
+
+document.getElementById('compatChart').addEventListener('mousemove', function(e) {
+  const rect = this.getBoundingClientRect();
+  tooltip.style.left = (e.clientX + 14) + 'px';
+  tooltip.style.top = (e.clientY - 10) + 'px';
+});
+
+document.getElementById('compatChart').addEventListener('mouseleave', function() {
+  tooltip.style.display = 'none';
+  activeItem = null;
+  chart.draw();
+});
+</script>
