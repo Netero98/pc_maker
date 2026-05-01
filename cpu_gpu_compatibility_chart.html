@@ -7,7 +7,7 @@
     <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#CC2244;opacity:0.9;"></span>GPU AMD</span>
     <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:3px;background:#888;opacity:0.3;margin-bottom:1px;"></span>зона совместимости</span>
   </div>
-  <div style="position:relative; width:100%; height:480px;">
+  <div style="position:relative; width:100%; height:580px;">
     <canvas id="compatChart" role="img" aria-label="График совместимости процессоров и видеокарт по уровню производительности"></canvas>
   </div>
   <div id="tooltip" style="display:none;position:fixed;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--color-text-primary);pointer-events:none;z-index:9999;max-width:220px;"></div>
@@ -110,7 +110,18 @@ const GTOL = 3;
 const cpuClusters = clusterByScore(cpus, CTOL);
 const gpuClusters = clusterByScore(gpus, GTOL);
 
-const CLUSTER_Y_SPACING = 7;
+const cpuMaxN = Math.max(...cpuClusters.map(c => c.length));
+const gpuMaxN = Math.max(...gpuClusters.map(c => c.length));
+const CHART_PADDING = 3;
+const ROW_GAP = 10;
+const totalSlots = (gpuMaxN - 1) + (cpuMaxN - 1);
+const availHeight = 100 - 2 * CHART_PADDING - ROW_GAP;
+const CLUSTER_Y_SPACING = Math.min(7, availHeight / Math.max(1, totalSlots));
+
+const gpuHalf = (gpuMaxN - 1) / 2 * CLUSTER_Y_SPACING;
+const cpuHalf = (cpuMaxN - 1) / 2 * CLUSTER_Y_SPACING;
+const GPU_Y = CHART_PADDING + gpuHalf;
+const CPU_Y = 100 - CHART_PADDING - cpuHalf;
 
 function buildScatterPoints(clusters, baseY, type) {
   const points = [];
@@ -132,8 +143,6 @@ function buildScatterPoints(clusters, baseY, type) {
   return points;
 }
 
-const CPU_Y = 78;
-const GPU_Y = 22;
 const cpuPoints = buildScatterPoints(cpuClusters, CPU_Y, 'cpu');
 const gpuPoints = buildScatterPoints(gpuClusters, GPU_Y, 'gpu');
 
@@ -158,7 +167,11 @@ const nvidiaDot = '#20A060';
 const amdGpuDot = '#CC2244';
 
 const cpuColors = cpuPoints.map(c => c.brand === 'intel' ? intelDot : amdCpuDot);
+const cpuRadius = cpuPoints.map(p => p._clusterSize > 8 ? 3 : (p._clusterSize > 4 ? 4 : 5));
+const cpuHoverR = cpuPoints.map(p => p._clusterSize > 8 ? 5 : (p._clusterSize > 4 ? 6 : 7));
 const gpuColors = gpuPoints.map(g => g.brand === 'nvidia' ? nvidiaDot : amdGpuDot);
+const gpuRadius = gpuPoints.map(p => p._clusterSize > 8 ? 3 : (p._clusterSize > 4 ? 4 : 5));
+const gpuHoverR = gpuPoints.map(p => p._clusterSize > 8 ? 5 : (p._clusterSize > 4 ? 6 : 7));
 
 const tooltip = document.getElementById('tooltip');
 let activeItem = null;
@@ -172,8 +185,8 @@ const chart = new Chart(document.getElementById('compatChart'), {
         data: cpuPoints,
         pointBackgroundColor: cpuColors,
         pointBorderColor: cpuColors,
-        pointRadius: 10,
-        pointHoverRadius: 12,
+        pointRadius: cpuRadius,
+        pointHoverRadius: cpuHoverR,
         showLine: true,
         borderColor: 'rgba(120,120,120,0.3)',
         borderWidth: 1.5,
@@ -186,8 +199,8 @@ const chart = new Chart(document.getElementById('compatChart'), {
         data: gpuPoints,
         pointBackgroundColor: gpuColors,
         pointBorderColor: gpuColors,
-        pointRadius: 10,
-        pointHoverRadius: 12,
+        pointRadius: gpuRadius,
+        pointHoverRadius: gpuHoverR,
         showLine: true,
         borderColor: 'rgba(120,120,120,0.3)',
         borderWidth: 1.5,
@@ -265,13 +278,6 @@ const chart = new Chart(document.getElementById('compatChart'), {
       }
       const compact = minGap < 55;
       chart._compact = compact;
-      chart.data.datasets.forEach((ds, dsIdx) => {
-        const meta = chart.getDatasetMeta(dsIdx);
-        meta.data.forEach(el => {
-          el.options.radius = compact ? 5 : 10;
-          el.options.hoverRadius = compact ? 7 : 12;
-        });
-      });
 
       const cpuYpx = y.getPixelForValue(CPU_Y);
       const gpuYpx = y.getPixelForValue(GPU_Y);
@@ -329,7 +335,8 @@ const chart = new Chart(document.getElementById('compatChart'), {
     },
     afterDatasetsDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
-      const font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+      const fontSize = CLUSTER_Y_SPACING < 5 ? 8 : 9;
+      const font = fontSize + 'px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
 
       ctx.save();
       ctx.font = font;
