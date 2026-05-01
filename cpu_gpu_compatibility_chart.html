@@ -7,7 +7,7 @@
     <span style="display:flex;align-items:center;gap:5px;"><span style="width:12px;height:12px;border-radius:2px;background:#CC2244;opacity:0.9;"></span>GPU AMD</span>
     <span style="display:flex;align-items:center;gap:5px;"><span style="display:inline-block;width:12px;height:3px;background:#888;opacity:0.3;margin-bottom:1px;"></span>зона совместимости</span>
   </div>
-  <div style="position:relative; width:100%; height:420px;">
+  <div style="position:relative; width:100%; height:480px;">
     <canvas id="compatChart" role="img" aria-label="График совместимости процессоров и видеокарт по уровню производительности"></canvas>
   </div>
   <div id="tooltip" style="display:none;position:fixed;background:var(--color-background-primary);border:0.5px solid var(--color-border-secondary);border-radius:var(--border-radius-md);padding:8px 12px;font-size:12px;color:var(--color-text-primary);pointer-events:none;z-index:9999;max-width:220px;"></div>
@@ -15,68 +15,106 @@
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
+const CPU_MAX = 41134;
+const GPU_MAX = 26768;
+
+function norm(score, max) { return Math.round(score / max * 100); }
+
 const cpus = [
-  {name:'Ryzen 3 3100', score:14, brand:'amd'},
-  {name:'Ryzen 3 3300X', score:18, brand:'amd'},
-  {name:'i3-10100F', score:22, brand:'intel'},
-  {name:'Pentium G7400', score:28, brand:'intel'},
-  {name:'i5-10400F', score:34, brand:'intel'},
-  {name:'Ryzen 5 3600', score:38, brand:'amd'},
-  {name:'i3-12100F', score:42, brand:'intel'},
-  {name:'Ryzen 5 5500', score:48, brand:'amd'},
-  {name:'Ryzen 7 3700X', score:50, brand:'amd'},
-  {name:'i7-10700K', score:56, brand:'intel'},
-  {name:'i5-12400F', score:58, brand:'intel'},
-  {name:'Ryzen 5 5600G', score:52, brand:'amd'},
-  {name:'Ryzen 5 5600', score:63, brand:'amd'},
-  {name:'Ryzen 5 5600X', score:67, brand:'amd'},
-  {name:'i5-12600K', score:74, brand:'intel'},
-  {name:'Ryzen 7 5700X', score:79, brand:'amd'},
-  {name:'i7-12700K', score:88, brand:'intel'},
-  {name:'Ryzen 9 5900X', score:95, brand:'amd'},
-  {name:'i9-12900K', score:100, brand:'intel'},
+  {name:'Pentium G7400',    score:norm(6712,  CPU_MAX),  brand:'intel',  _raw:6712},
+  {name:'i3-10100F',        score:norm(8716,  CPU_MAX),  brand:'intel',  _raw:8716},
+  {name:'Ryzen 3 3100',    score:norm(11524, CPU_MAX),  brand:'amd',    _raw:11524},
+  {name:'i5-10400F',        score:norm(12104, CPU_MAX),  brand:'intel',  _raw:12104},
+  {name:'Ryzen 3 3300X',   score:norm(12588, CPU_MAX),  brand:'amd',    _raw:12588},
+  {name:'i3-12100F',        score:norm(13973, CPU_MAX),  brand:'intel',  _raw:13973},
+  {name:'Ryzen 5 3600',    score:norm(17670, CPU_MAX),  brand:'amd',    _raw:17670},
+  {name:'i7-10700K',        score:norm(18528, CPU_MAX),  brand:'intel',  _raw:18528},
+  {name:'Ryzen 5 5500',    score:norm(19277, CPU_MAX),  brand:'amd',    _raw:19277},
+  {name:'i5-12400F',        score:norm(19591, CPU_MAX),  brand:'intel',  _raw:19591},
+  {name:'Ryzen 5 5600G',   score:norm(19663, CPU_MAX),  brand:'amd',    _raw:19663},
+  {name:'Ryzen 5 5600',    score:norm(21524, CPU_MAX),  brand:'amd',    _raw:21524},
+  {name:'Ryzen 5 5600X',   score:norm(21841, CPU_MAX),  brand:'amd',    _raw:21841},
+  {name:'Ryzen 7 5700X',   score:norm(26587, CPU_MAX),  brand:'amd',    _raw:26587},
+  {name:'i5-12600K',        score:norm(27538, CPU_MAX),  brand:'intel',  _raw:27538},
+  {name:'i7-12700K',        score:norm(34293, CPU_MAX),  brand:'intel',  _raw:34293},
+  {name:'Ryzen 9 5900X',   score:norm(38926, CPU_MAX),  brand:'amd',    _raw:38926},
+  {name:'i9-12900K',        score:norm(41134, CPU_MAX),  brand:'intel',  _raw:41134},
 ];
 
 const gpus = [
-  {name:'GTX 1050 Ti', score:10, brand:'nvidia'},
-  {name:'GTX 1060 6GB', score:16, brand:'nvidia'},
-  {name:'RX 580 8GB', score:19, brand:'amd'},
-  {name:'GTX 1660 Super', score:23, brand:'nvidia'},
-  {name:'RTX 2060', score:27, brand:'nvidia'},
-  {name:'RX 6600', score:30, brand:'amd'},
-  {name:'RTX 2070 Super', score:34, brand:'nvidia'},
-  {name:'RTX 3060', score:38, brand:'nvidia'},
-  {name:'RX 5700 XT', score:42, brand:'amd'},
-  {name:'RX 6650 XT', score:44, brand:'amd'},
-  {name:'RTX 3060 Ti', score:52, brand:'nvidia'},
-  {name:'RX 6700 XT', score:59, brand:'amd'},
-  {name:'RTX 3070', score:65, brand:'nvidia'},
-  {name:'RX 6800', score:71, brand:'amd'},
-  {name:'RTX 3070 Ti', score:76, brand:'nvidia'},
-  {name:'RTX 3080', score:84, brand:'nvidia'},
-  {name:'RX 6800 XT', score:88, brand:'amd'},
-  {name:'RTX 3080 Ti', score:95, brand:'nvidia'},
-  {name:'RTX 3090', score:100, brand:'nvidia'},
+  {name:'GTX 1050 Ti',      score:norm(6362,  GPU_MAX),  brand:'nvidia', _raw:6362},
+  {name:'GTX 1060 6GB',    score:norm(10045, GPU_MAX),  brand:'nvidia', _raw:10045},
+  {name:'RX 580 8GB',      score:norm(8790,  GPU_MAX),  brand:'amd',    _raw:8790},
+  {name:'GTX 1660 Super',   score:norm(12683, GPU_MAX),  brand:'nvidia', _raw:12683},
+  {name:'RTX 2060',         score:norm(14094, GPU_MAX),  brand:'nvidia', _raw:14094},
+  {name:'RX 6600',          score:norm(15059, GPU_MAX),  brand:'amd',    _raw:15059},
+  {name:'RTX 2070 Super',   score:norm(18136, GPU_MAX),  brand:'nvidia', _raw:18136},
+  {name:'RTX 3060 12GB',    score:norm(16737, GPU_MAX),  brand:'nvidia', _raw:16737},
+  {name:'RX 5700 XT',       score:norm(16079, GPU_MAX),  brand:'amd',    _raw:16079},
+  {name:'RX 6650 XT',       score:norm(17123, GPU_MAX),  brand:'amd',    _raw:17123},
+  {name:'RTX 3060 Ti',      score:norm(20263, GPU_MAX),  brand:'nvidia', _raw:20263},
+  {name:'RX 6700 XT',       score:norm(19731, GPU_MAX),  brand:'amd',    _raw:19731},
+  {name:'RTX 3070',         score:norm(22118, GPU_MAX),  brand:'nvidia', _raw:22118},
+  {name:'RX 6800',          score:norm(22026, GPU_MAX),  brand:'amd',    _raw:22026},
+  {name:'RTX 3070 Ti',      score:norm(23243, GPU_MAX),  brand:'nvidia', _raw:23243},
+  {name:'RTX 3080',         score:norm(25019, GPU_MAX),  brand:'nvidia', _raw:25019},
+  {name:'RX 6800 XT',       score:norm(25053, GPU_MAX),  brand:'amd',    _raw:25053},
+  {name:'RTX 3080 Ti',      score:norm(26768, GPU_MAX),  brand:'nvidia', _raw:26768},
+  {name:'RTX 3090',         score:norm(26546, GPU_MAX),  brand:'nvidia', _raw:26546},
 ];
+
+function clusterByScore(processors, tolerance) {
+  const sorted = [...processors].sort((a,b) => a.score - b.score);
+  const clusters = [];
+  let current = [sorted[0]];
+  for (let i = 1; i < sorted.length; i++) {
+    if (sorted[i].score - current[current.length-1].score <= tolerance) {
+      current.push(sorted[i]);
+    } else {
+      clusters.push(current);
+      current = [sorted[i]];
+    }
+  }
+  clusters.push(current);
+  return clusters;
+}
+
+const CTOL = 2;
+const GTOL = 3;
+const cpuClusters = clusterByScore(cpus, CTOL);
+const gpuClusters = clusterByScore(gpus, GTOL);
+
+const CLUSTER_Y_SPACING = 7;
+
+function buildScatterPoints(clusters, baseY, type) {
+  const points = [];
+  clusters.forEach(cluster => {
+    const avgScore = Math.round(cluster.reduce((s,c) => s + c.score, 0) / cluster.length);
+    const n = cluster.length;
+    cluster.forEach((proc, i) => {
+      const y = baseY + (i - (n-1)/2) * CLUSTER_Y_SPACING;
+      points.push({
+        x: avgScore, y: y,
+        name: proc.name, brand: proc.brand,
+        score: avgScore,
+        type: type,
+        _clusterSize: n,
+        _clusterIdx: i,
+      });
+    });
+  });
+  return points;
+}
+
+const CPU_Y = 78;
+const GPU_Y = 22;
+const cpuPoints = buildScatterPoints(cpuClusters, CPU_Y, 'cpu');
+const gpuPoints = buildScatterPoints(gpuClusters, GPU_Y, 'gpu');
 
 function compatRange(score) {
   const margin = 22;
   return [Math.max(0, score - margin), Math.min(105, score + margin)];
 }
-
-const CPU_Y = 75;
-const GPU_Y = 25;
-
-const cpuPoints = cpus.map(c => ({x: c.score, y: CPU_Y, name: c.name, brand: c.brand, score: c.score, type:'cpu'}));
-const gpuPoints = gpus.map(g => ({x: g.score, y: GPU_Y, name: g.name, brand: g.brand, score: g.score, type:'gpu'}));
-
-const cpuBands = cpus.map(c => {
-  const [lo, hi] = compatRange(c.score);
-  return {
-    type:'bar', label:'_cpu_band_'+c.name, data:[],
-    annotations: true, _lo: lo, _hi: hi, _name: c.name, _brand: c.brand
-  };
-});
 
 const intelColor = 'rgba(61,142,232,0.13)';
 const amdCpuColor = 'rgba(232,92,48,0.13)';
@@ -93,8 +131,8 @@ const amdCpuDot = '#E85C30';
 const nvidiaDot = '#20A060';
 const amdGpuDot = '#CC2244';
 
-const cpuColors = cpus.map(c => c.brand === 'intel' ? intelDot : amdCpuDot);
-const gpuColors = gpus.map(g => g.brand === 'nvidia' ? nvidiaDot : amdGpuDot);
+const cpuColors = cpuPoints.map(c => c.brand === 'intel' ? intelDot : amdCpuDot);
+const gpuColors = gpuPoints.map(g => g.brand === 'nvidia' ? nvidiaDot : amdGpuDot);
 
 const tooltip = document.getElementById('tooltip');
 let activeItem = null;
@@ -162,9 +200,10 @@ const chart = new Chart(document.getElementById('compatChart'), {
         const pt = ds.data[el.index];
         activeItem = pt;
         const [lo, hi] = compatRange(pt.score);
-        const other = pt.type === 'cpu' ? gpuPoints : cpuPoints;
-        const matches = other.filter(o => o.score >= lo && o.score <= hi);
-        const matchNames = matches.map(m => m.name).join(', ') || 'нет';
+        const otherSet = pt.type === 'cpu' ? gpuPoints : cpuPoints;
+        const matches = otherSet.filter(o => o.score >= lo && o.score <= hi);
+        const seen = new Set();
+        const matchNames = matches.filter(m => { const k = m.name; if (seen.has(k)) return false; seen.add(k); return true; }).map(m => m.name).join(', ') || 'нет';
         const typeLabel = pt.type === 'cpu' ? 'Процессор' : 'Видеокарта';
         const otherLabel = pt.type === 'cpu' ? 'GPU' : 'CPU';
         tooltip.innerHTML = `<strong>${pt.name}</strong><br><span style="color:rgba(128,128,128,0.8);font-size:11px;">${typeLabel} · рейтинг ${pt.score}</span><br><hr style="border:none;border-top:0.5px solid rgba(128,128,128,0.2);margin:6px 0;"><span style="font-size:11px;color:rgba(128,128,128,0.9);">Совместимые ${otherLabel}:</span><br><span style="font-size:11px;">${matchNames}</span>`;
@@ -183,14 +222,20 @@ const chart = new Chart(document.getElementById('compatChart'), {
     beforeDatasetsDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
 
+      const cpuX = cpuPoints.map(p => x.getPixelForValue(p.score));
       let minGap = Infinity;
-      for (let i = 1; i < cpuPoints.length; i++) {
-        const gap = x.getPixelForValue(cpuPoints[i].score) - x.getPixelForValue(cpuPoints[i-1].score);
-        if (gap < minGap) minGap = gap;
+      for (let i = 1; i < cpuX.length; i++) {
+        if (cpuX[i] !== cpuX[i-1]) {
+          const gap = Math.abs(cpuX[i] - cpuX[i-1]);
+          if (gap < minGap) minGap = gap;
+        }
       }
-      for (let i = 1; i < gpuPoints.length; i++) {
-        const gap = x.getPixelForValue(gpuPoints[i].score) - x.getPixelForValue(gpuPoints[i-1].score);
-        if (gap < minGap) minGap = gap;
+      const gpuX = gpuPoints.map(p => x.getPixelForValue(p.score));
+      for (let i = 1; i < gpuX.length; i++) {
+        if (gpuX[i] !== gpuX[i-1]) {
+          const gap = Math.abs(gpuX[i] - gpuX[i-1]);
+          if (gap < minGap) minGap = gap;
+        }
       }
       const compact = minGap < 55;
       chart._compact = compact;
@@ -202,44 +247,34 @@ const chart = new Chart(document.getElementById('compatChart'), {
         });
       });
 
-      const yTop = y.getPixelForValue(100);
-      const yBottom = y.getPixelForValue(0);
-      const cpuY = y.getPixelForValue(CPU_Y);
-      const gpuY = y.getPixelForValue(GPU_Y);
-      const midY = (cpuY + gpuY) / 2;
+      const cpuYpx = y.getPixelForValue(CPU_Y);
+      const gpuYpx = y.getPixelForValue(GPU_Y);
 
-      const allItems = [...cpuPoints, ...gpuPoints];
-      allItems.forEach(pt => {
+      const uniqueItems = [];
+      const seenNames = new Set();
+      [...cpuPoints, ...gpuPoints].forEach(pt => {
+        if (!seenNames.has(pt.name)) {
+          seenNames.add(pt.name);
+          uniqueItems.push(pt);
+        }
+      });
+
+      uniqueItems.forEach(pt => {
         const isActive = activeItem && activeItem.name === pt.name;
         const [lo, hi] = compatRange(pt.score);
         const x1 = x.getPixelForValue(lo);
         const x2 = x.getPixelForValue(hi);
 
-        let fillColor, borderColor;
-        if (pt.type === 'cpu') {
-          fillColor = pt.brand === 'intel' ? intelColor : amdCpuColor;
-          borderColor = pt.brand === 'intel' ? intelBorder : amdCpuBorder;
-        } else {
-          fillColor = pt.brand === 'nvidia' ? nvidiaColor : amdGpuColor;
-          borderColor = pt.brand === 'nvidia' ? nvidiaBorder : amdGpuBorder;
-        }
-
-        const alpha = isActive ? 3.5 : 1;
-
-        ctx.save();
-        ctx.globalAlpha = alpha * (isActive ? 0.35 : 0.18);
-        ctx.fillStyle = fillColor.replace('0.13','1').replace('rgba','rgba');
-        
-        const rawFill = pt.type === 'cpu' 
+        const rawFill = pt.type === 'cpu'
           ? (pt.brand === 'intel' ? [61,142,232] : [232,92,48])
           : (pt.brand === 'nvidia' ? [32,160,96] : [204,34,68]);
-        
-        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.22 : 0.09})`;
-        
-        const lineY = pt.type === 'cpu' ? cpuY : gpuY;
-        const extendTo = pt.type === 'cpu' ? gpuY : cpuY;
+
+        const lineY = pt.type === 'cpu' ? cpuYpx : gpuYpx;
+        const extendTo = pt.type === 'cpu' ? gpuYpx : cpuYpx;
         const h = 30;
 
+        ctx.save();
+        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.22 : 0.09})`;
         ctx.beginPath();
         ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
         ctx.fill();
@@ -263,60 +298,74 @@ const chart = new Chart(document.getElementById('compatChart'), {
       ctx.fillStyle = 'rgba(128,128,128,0.55)';
       ctx.font = '500 11px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
       ctx.textAlign = 'left';
-      ctx.fillText('▶ CPU', x.getPixelForValue(1), cpuY + 4);
-      ctx.fillText('▶ GPU', x.getPixelForValue(1), gpuY + 4);
+      ctx.fillText('▶ CPU', x.getPixelForValue(3), cpuYpx + 4);
+      ctx.fillText('▶ GPU', x.getPixelForValue(3), gpuYpx + 4);
       ctx.restore();
     },
     afterDatasetsDraw(chart) {
       const {ctx, scales: {x, y}} = chart;
-      const cpuY = y.getPixelForValue(CPU_Y);
-      const gpuY = y.getPixelForValue(GPU_Y);
       const font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
-      const pad = 3;
 
       ctx.save();
       ctx.font = font;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'top';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
 
-      if (!activeItem || activeItem.type !== 'cpu') {
-        let toggle = false;
-        cpuPoints.forEach((pt, i) => {
-        const ptX = x.getPixelForValue(pt.score);
-        const w = ctx.measureText(pt.name).width;
-        if (i > 0) {
-          const prev = cpuPoints[i-1];
-          const prevX = x.getPixelForValue(prev.score);
-          const prevW = ctx.measureText(prev.name).width;
-          if (ptX - prevX < (w + prevW) / 2 + pad) {
-            toggle = !toggle;
-          } else {
-            toggle = false;
+      function drawClusterLabels(points, clusters, kind) {
+        const pointByName = {};
+        points.forEach(p => { pointByName[p.name] = p; });
+
+        clusters.forEach(cluster => {
+          const p0 = pointByName[cluster[0].name];
+          if (!p0) return;
+          const px0 = x.getPixelForValue(p0.score);
+          const membersPx = cluster.map(c => {
+            const p = pointByName[c.name];
+            return { name: c.name, brand: c.brand, type: kind, py: p ? y.getPixelForValue(p.y) : 0 };
+          });
+
+          const topY = membersPx[0].py;
+          const botY = membersPx[membersPx.length - 1].py;
+
+          if (membersPx.length > 1) {
+            ctx.save();
+            ctx.strokeStyle = 'rgba(128,128,128,0.25)';
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 3]);
+            ctx.beginPath();
+            ctx.moveTo(px0, topY);
+            ctx.lineTo(px0, botY);
+            ctx.stroke();
+            ctx.setLineDash([]);
+
+            ctx.strokeStyle = 'rgba(128,128,128,0.25)';
+            ctx.lineWidth = 1;
+            [topY, botY].forEach(capY => {
+              ctx.beginPath();
+              ctx.moveTo(px0 - 4, capY);
+              ctx.lineTo(px0 + 4, capY);
+              ctx.stroke();
+            });
+            ctx.restore();
           }
-        }
-        ctx.fillStyle = pt.brand === 'intel' ? intelDot : amdCpuDot;
-        ctx.fillText(pt.name, ptX, cpuY + (toggle && chart._compact ? 28 : 13));
-      });
+
+          membersPx.forEach(m => {
+            const isCpu = m.type === 'cpu';
+            let color;
+            if (m.brand === 'intel') color = intelDot;
+            else if (m.brand === 'amd') color = isCpu ? amdCpuDot : amdGpuDot;
+            else color = m.brand === 'nvidia' ? nvidiaDot : (isCpu ? intelDot : amdGpuDot);
+            ctx.fillStyle = color;
+            ctx.fillText(m.name, px0 + 14, m.py);
+          });
+        });
       }
 
+      if (!activeItem || activeItem.type !== 'cpu') {
+        drawClusterLabels(cpuPoints, cpuClusters, 'cpu');
+      }
       if (!activeItem || activeItem.type !== 'gpu') {
-        let toggle = false;
-        gpuPoints.forEach((pt, i) => {
-        const ptX = x.getPixelForValue(pt.score);
-        const w = ctx.measureText(pt.name).width;
-        if (i > 0) {
-          const prev = gpuPoints[i-1];
-          const prevX = x.getPixelForValue(prev.score);
-          const prevW = ctx.measureText(prev.name).width;
-          if (ptX - prevX < (w + prevW) / 2 + pad) {
-            toggle = !toggle;
-          } else {
-            toggle = false;
-          }
-        }
-        ctx.fillStyle = pt.brand === 'nvidia' ? nvidiaDot : amdGpuDot;
-        ctx.fillText(pt.name, ptX, gpuY + (toggle && chart._compact ? 28 : 13));
-      });
+        drawClusterLabels(gpuPoints, gpuClusters, 'gpu');
       }
 
       ctx.restore();
