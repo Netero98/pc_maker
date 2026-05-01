@@ -16,9 +16,16 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script>
 const cpus = [
+  {name:'Ryzen 3 3100', score:14, brand:'amd'},
+  {name:'Ryzen 3 3300X', score:18, brand:'amd'},
+  {name:'i3-10100F', score:22, brand:'intel'},
   {name:'Pentium G7400', score:28, brand:'intel'},
+  {name:'i5-10400F', score:34, brand:'intel'},
+  {name:'Ryzen 5 3600', score:38, brand:'amd'},
   {name:'i3-12100F', score:42, brand:'intel'},
   {name:'Ryzen 5 5500', score:48, brand:'amd'},
+  {name:'Ryzen 7 3700X', score:50, brand:'amd'},
+  {name:'i7-10700K', score:56, brand:'intel'},
   {name:'i5-12400F', score:58, brand:'intel'},
   {name:'Ryzen 5 5600', score:63, brand:'amd'},
   {name:'Ryzen 5 5600X', score:67, brand:'amd'},
@@ -30,15 +37,22 @@ const cpus = [
 ];
 
 const gpus = [
+  {name:'GTX 1050 Ti', score:10, brand:'nvidia'},
+  {name:'GTX 1060 6GB', score:16, brand:'nvidia'},
+  {name:'RX 580 8GB', score:19, brand:'amd'},
+  {name:'GTX 1660 Super', score:23, brand:'nvidia'},
+  {name:'RTX 2060', score:27, brand:'nvidia'},
   {name:'RX 6600', score:30, brand:'amd'},
+  {name:'RTX 2070 Super', score:34, brand:'nvidia'},
   {name:'RTX 3060', score:38, brand:'nvidia'},
+  {name:'RX 5700 XT', score:42, brand:'amd'},
   {name:'RX 6650 XT', score:44, brand:'amd'},
   {name:'RTX 3060 Ti', score:52, brand:'nvidia'},
   {name:'RX 6700 XT', score:59, brand:'amd'},
   {name:'RTX 3070', score:65, brand:'nvidia'},
   {name:'RX 6800', score:71, brand:'amd'},
   {name:'RTX 3070 Ti', score:76, brand:'nvidia'},
-  {name:'RTX 3080', score:84, brand:'amd'},
+  {name:'RTX 3080', score:84, brand:'nvidia'},
   {name:'RX 6800 XT', score:88, brand:'amd'},
   {name:'RTX 3080 Ti', score:95, brand:'nvidia'},
   {name:'RTX 3090', score:100, brand:'nvidia'},
