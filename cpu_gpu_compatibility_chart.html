@@ -304,24 +304,12 @@ const chart = new Chart(document.getElementById('compatChart'), {
 
         const lineY = pt.type === 'cpu' ? cpuYpx : gpuYpx;
         const extendTo = pt.type === 'cpu' ? gpuYpx : cpuYpx;
-        const h = 30;
 
         ctx.save();
-        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.22)`;
-        ctx.beginPath();
-        ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
-        ctx.fill();
-
         ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.12)`;
         ctx.beginPath();
         ctx.roundRect(x1, Math.min(lineY, extendTo) - 5, x2-x1, Math.abs(extendTo-lineY)+10, 4);
         ctx.fill();
-
-        ctx.strokeStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.6)`;
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
-        ctx.stroke();
         ctx.restore();
       });
 
