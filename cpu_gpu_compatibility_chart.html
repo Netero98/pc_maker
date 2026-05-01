@@ -267,7 +267,6 @@ const chart = new Chart(document.getElementById('compatChart'), {
       ctx.restore();
     },
     afterDatasetsDraw(chart) {
-      if (activeItem) return;
       const {ctx, scales: {x, y}} = chart;
       const cpuY = y.getPixelForValue(CPU_Y);
       const gpuY = y.getPixelForValue(GPU_Y);
@@ -279,8 +278,9 @@ const chart = new Chart(document.getElementById('compatChart'), {
       ctx.textAlign = 'center';
       ctx.textBaseline = 'top';
 
-      let toggle = false;
-      cpuPoints.forEach((pt, i) => {
+      if (!activeItem || activeItem.type !== 'cpu') {
+        let toggle = false;
+        cpuPoints.forEach((pt, i) => {
         const ptX = x.getPixelForValue(pt.score);
         const w = ctx.measureText(pt.name).width;
         if (i > 0) {
@@ -296,9 +296,11 @@ const chart = new Chart(document.getElementById('compatChart'), {
         ctx.fillStyle = pt.brand === 'intel' ? intelDot : amdCpuDot;
         ctx.fillText(pt.name, ptX, cpuY + (toggle && chart._compact ? 28 : 13));
       });
+      }
 
-      toggle = false;
-      gpuPoints.forEach((pt, i) => {
+      if (!activeItem || activeItem.type !== 'gpu') {
+        let toggle = false;
+        gpuPoints.forEach((pt, i) => {
         const ptX = x.getPixelForValue(pt.score);
         const w = ctx.measureText(pt.name).width;
         if (i > 0) {
@@ -314,6 +316,7 @@ const chart = new Chart(document.getElementById('compatChart'), {
         ctx.fillStyle = pt.brand === 'nvidia' ? nvidiaDot : amdGpuDot;
         ctx.fillText(pt.name, ptX, gpuY + (toggle && chart._compact ? 28 : 13));
       });
+      }
 
       ctx.restore();
     }
