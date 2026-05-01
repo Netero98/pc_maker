@@ -231,6 +231,30 @@ const chart = new Chart(document.getElementById('compatChart'), {
       ctx.fillText('▶ CPU', x.getPixelForValue(1), cpuY + 4);
       ctx.fillText('▶ GPU', x.getPixelForValue(1), gpuY + 4);
       ctx.restore();
+    },
+    afterDatasetsDraw(chart) {
+      if (activeItem) return;
+      const {ctx, scales: {x, y}} = chart;
+      const cpuY = y.getPixelForValue(CPU_Y);
+      const gpuY = y.getPixelForValue(GPU_Y);
+      const font = '9px ' + (getComputedStyle(document.body).fontFamily || 'sans-serif');
+
+      ctx.save();
+      ctx.font = font;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'top';
+
+      cpuPoints.forEach(pt => {
+        ctx.fillStyle = pt.brand === 'intel' ? intelDot : amdCpuDot;
+        ctx.fillText(pt.name, x.getPixelForValue(pt.score), cpuY + 13);
+      });
+
+      gpuPoints.forEach(pt => {
+        ctx.fillStyle = pt.brand === 'nvidia' ? nvidiaDot : amdGpuDot;
+        ctx.fillText(pt.name, x.getPixelForValue(pt.score), gpuY + 13);
+      });
+
+      ctx.restore();
     }
   }]
 });
