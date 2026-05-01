@@ -261,6 +261,7 @@ const chart = new Chart(document.getElementById('compatChart'), {
 
       uniqueItems.forEach(pt => {
         const isActive = activeItem && activeItem.name === pt.name;
+        if (!isActive) return;
         const [lo, hi] = compatRange(pt.score);
         const x1 = x.getPixelForValue(lo);
         const x2 = x.getPixelForValue(hi);
@@ -274,23 +275,21 @@ const chart = new Chart(document.getElementById('compatChart'), {
         const h = 30;
 
         ctx.save();
-        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.22 : 0.09})`;
+        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.22)`;
         ctx.beginPath();
         ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
         ctx.fill();
 
-        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.12 : 0.05})`;
+        ctx.fillStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.12)`;
         ctx.beginPath();
         ctx.roundRect(x1, Math.min(lineY, extendTo) - 5, x2-x1, Math.abs(extendTo-lineY)+10, 4);
         ctx.fill();
 
-        ctx.strokeStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},${isActive ? 0.6 : 0.25})`;
-        ctx.lineWidth = isActive ? 1.5 : 0.8;
-        ctx.setLineDash(isActive ? [] : [3,3]);
+        ctx.strokeStyle = `rgba(${rawFill[0]},${rawFill[1]},${rawFill[2]},0.6)`;
+        ctx.lineWidth = 1.5;
         ctx.beginPath();
         ctx.roundRect(x1, lineY - h/2, x2-x1, h, 6);
         ctx.stroke();
-        ctx.setLineDash([]);
         ctx.restore();
       });
 
